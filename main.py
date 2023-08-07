@@ -4,24 +4,32 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 
 
-class Scene:
+class MenuScene:
     def __init__(self, root):
         self.root = root
         self.root.title("Simple GUI")
 
+        # Data for the line graph
+        self.x_data = []
+        self.y_data = []
+        self.money = 0
+        self.day = 0
+        self.energy = 100
+        self.stocks = 0
+
         # Create widgets for the main scene
-        self.label = tk.Label(root, text="Walk around")
+        self.label = tk.Label(root, text="Money: $" + str(self.money))
         self.button = tk.Button(root, text="Stock Exchange", command=self.on_button_click_stock_exchange)
         self.village_button = tk.Button(root, text="Village", command=self.on_button_click_village)
+
+
 
         # Grid layout for the main scene
         self.label.grid(row=0, column=0, padx=10, pady=10)
         self.button.grid(row=1, column=0, padx=10, pady=10)
         self.village_button.grid(row=2, column=0, padx=10, pady=10)
 
-        # Data for the line graph
-        self.x_data = []
-        self.y_data = []
+
 
     def on_button_click_stock_exchange(self):
         # Hide the widgets of the main scene
@@ -29,7 +37,7 @@ class Scene:
         self.button.grid_forget()
 
         # Switch to the stock exchange scene
-        self.stock_exchange = StockExchange(self.root, self.back_to_main_scene_from_stock_exchange, self.x_data, self.y_data)
+        self.stock_exchange = StockExchange(self.root, self.back_to_main_scene_from_stock_exchange, self.x_data, self.y_data, self.money, self.day, self.energy, self.stocks)
 
     def on_button_click_village(self):
         # Hide the widgets of the main scene
@@ -37,9 +45,12 @@ class Scene:
         self.button.grid_forget()
 
         # Switch to the village scene
-        self.village = VillageScene(self.root, self.back_to_main_scene_from_village)
+        self.village = VillageScene(self.root, self.back_to_main_scene_from_village, self.money, self.day, self.energy)
 
     def back_to_main_scene_from_stock_exchange(self):
+        self.money = self.stock_exchange.money
+        print(self.money)
+        self.label = tk.Label(root, text="Money: $" + str(self.money))
         # Destroy the stock exchange scene and return to the main scene
         self.stock_exchange.destroy()
         # Restore the widgets of the main scene
@@ -47,7 +58,10 @@ class Scene:
         self.button.grid(row=1, column=0, padx=10, pady=10)
 
     def back_to_main_scene_from_village(self):
-        # Destroy the stock exchange scene and return to the main scene
+        # Destroy the village scene and return to the main scene
+        self.money = self.village.money
+        print(self.money)
+        self.label = tk.Label(root, text="Money: $" + str(self.money))
         self.village.destroy()
         # Restore the widgets of the main scene
         self.label.grid(row=0, column=0, padx=10, pady=10)
@@ -55,17 +69,19 @@ class Scene:
 
 
 class VillageScene:
-    def __init__(self, root, on_back_button_click):
+    def __init__(self, root, on_back_button_click,money,day,energy):
         self.root = root
         self.on_back_button_click = on_back_button_click
         self.root.title("Home Scene")
 
+        self.money = money
+        self.day = day
         # Data for the energy bar
-        self.energy_value = 100
+        self.energy_value = energy
 
         # Create widgets for the home scene
         self.back_button = tk.Button(self.root, text="Go Back", command=self.on_back_button_click)
-        self.money_label = tk.Label(root, text="Money: $0")
+        self.money_label = tk.Label(root, text="Money: $" + str(self.money))
         self.work_button = tk.Button(root, text="Work", command=self.work)
         self.energy_label = tk.Label(root, text="Energy:")
         self.energy_bar = tk.Canvas(root, width=200, height=20, bg='white')
@@ -90,6 +106,8 @@ class VillageScene:
         self.energy_bar.create_rectangle(0, 0, bar_width, 20, fill='green', tags="energy")
 
     def work(self):
+
+        self.money = self.money + 20
         self.money_label.config(text=f"Money: ${int(self.money_label['text'][8:]) + 20}")
         self.energy_value = max(self.energy_value - 10, 0)
         self.update_energy_bar()
@@ -109,14 +127,16 @@ class VillageScene:
 
 
 class StockExchange:
-    def __init__(self, root, on_back_button_click, x_data, y_data):
+    def __init__(self, root, on_back_button_click, x_data, y_data, money, day, energy, stocks):
         self.root = root
         self.on_back_button_click = on_back_button_click
         self.x_data = x_data
         self.y_data = y_data
         self.current_index = 0
-        self.money = 200
-        self.stocks = 0
+        self.day = day
+        self.energy = energy
+        self.money = money
+        self.stocks = stocks
 
         # Create widgets for the stock exchange scene
         self.new_label = tk.Label(self.root, text="Stock Exchange")
@@ -199,5 +219,5 @@ class StockExchange:
 if __name__ == "__main__":
     # Create the main application window
     root = tk.Tk()
-    home_location = Scene(root)
+    home_location = MenuScene(root)
     root.mainloop()
